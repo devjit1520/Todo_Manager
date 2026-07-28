@@ -1,16 +1,17 @@
-import { getTasks, saveTasks } from "./storage.js";
-import { initDragAndDrop } from "./dragDrop.js";
-// render();
+import {
+  getTasks,
+  saveTasks
+} from "./storage.js";
 
-// initDragAndDrop(
-//   taskList,
-//   tasks,
-//   render
-// );
+import {
+  generateId,
+  isOverdue
+} from "./utils.js";
 
 import {
   renderTasks,
-  updateStats
+  updateStats,
+  updateTaskCount
 } from "./ui.js";
 
 import {
@@ -23,317 +24,592 @@ import {
 } from "./theme.js";
 
 import {
-  generateId
-} from "./utils.js";
+  initDragAndDrop
+} from "./dragDrop.js";
 
-/* ------------------ DOM ------------------ */
+/* =====================================================
+   DOM ELEMENTS
+===================================================== */
+
+const taskForm =
+  document.getElementById("taskForm");
 
 const taskInput =
   document.getElementById("taskInput");
 
 const categoryInput =
-  document.getElementById("categoryInput");
-
-const priorityInput =
-  document.getElementById("priorityInput");
+  document.getElementById(
+    "categoryInput"
+  );
 
 const dueDateInput =
-  document.getElementById("dueDateInput");
+  document.getElementById(
+    "dueDateInput"
+  );
 
-const addBtn =
-  document.getElementById("addBtn");
+const searchInput =
+  document.getElementById(
+    "searchInput"
+  );
+
+const clearSearchBtn =
+  document.getElementById(
+    "clearSearchBtn"
+  );
 
 const taskList =
   document.getElementById("taskList");
 
-const searchInput =
-  document.getElementById("searchInput");
-
 const themeBtn =
   document.getElementById("themeBtn");
 
-const filterButtons =
-  document.querySelectorAll(".filter-btn");
+const titleCount =
+  document.getElementById("titleCount");
 
-/* ------------------ STATE ------------------ */
+const filterButtons =
+  document.querySelectorAll(
+    ".filter-btn"
+  );
+
+const dragHint =
+  document.getElementById("dragHint");
+
+/* Edit modal */
+
+const editModal =
+  document.getElementById("editModal");
+
+const editTaskForm =
+  document.getElementById(
+    "editTaskForm"
+  );
+
+const editTaskInput =
+  document.getElementById(
+    "editTaskInput"
+  );
+
+const editCategoryInput =
+  document.getElementById(
+    "editCategoryInput"
+  );
+
+const editPriorityInput =
+  document.getElementById(
+    "editPriorityInput"
+  );
+
+const editDueDateInput =
+  document.getElementById(
+    "editDueDateInput"
+  );
+
+const closeEditBtn =
+  document.getElementById(
+    "closeEditBtn"
+  );
+
+const cancelEditBtn =
+  document.getElementById(
+    "cancelEditBtn"
+  );
+
+/* =====================================================
+   STATE
+===================================================== */
 
 let tasks = getTasks();
 
 let currentFilter = "all";
 
-/* ------------------ INIT ------------------ */
+let editingTaskId = null;
 
-initTheme();
+let sortableInstance = null;
 
-render();
+/* =====================================================
+   HELPERS
+===================================================== */
 
-/* ------------------ FUNCTIONS ------------------ */
+function getSelectedPriority() {
+  const selectedPriority =
+    document.querySelector(
+      'input[name="priority"]:checked'
+    );
+
+  return selectedPriority?.value ||
+    "Medium";
+}
+
+function getSearchKeyword() {
+  return searchInput.value
+    .trim()
+    .toLowerCase();
+}
+
+function getFilteredTasks() {
+  const keyword =
+    getSearchKeyword();
+
+  return tasks.filter(task => {
+    const title =
+      String(task.title || "")
+        .toLowerCase();
+
+    const category =
+      String(task.category || "")
+        .toLowerCase();
+
+    const priority =
+      String(task.priority || "")
+        .toLowerCase();
+
+    const matchesSearch =
+      !keyword ||
+      title.includes(keyword) ||
+      category.includes(keyword) ||
+      priority.includes(keyword);
+
+    let matchesFilter = true;
+
+    if (currentFilter === "active") {
+      matchesFilter =
+        !task.completed;
+    }
+
+    if (
+      currentFilter === "completed"
+    ) {
+      matchesFilter =
+        task.completed;
+    }
+
+    if (currentFilter === "overdue") {
+      matchesFilter =
+        !task.completed &&
+        isOverdue(task.dueDate);
+    }
+
+    return (
+      matchesSearch &&
+      matchesFilter
+    );
+  });
+}
+
+function updateDragState() {
+  if (!sortableInstance) {
+    return;
+  }
+
+  const shouldDisable =
+    currentFilter !== "all" ||
+    Boolean(getSearchKeyword()) ||
+    tasks.length < 2;
+
+  sortableInstance.option(
+    "disabled",
+    shouldDisable
+  );
+
+  dragHint.hidden =
+    shouldDisable;
+}
 
 function render() {
-
-  let filteredTasks = [...tasks];
-
-  const keyword =
-    searchInput.value
-    .toLowerCase()
-    .trim();
-
-  if (keyword) {
-
-    filteredTasks =
-      filteredTasks.filter(task =>
-        task.title
-        .toLowerCase()
-        .includes(keyword)
-      );
-  }
-
-  if (currentFilter === "active") {
-
-    filteredTasks =
-      filteredTasks.filter(
-        task => !task.completed
-      );
-  }
-
-  if (currentFilter === "completed") {
-
-    filteredTasks =
-      filteredTasks.filter(
-        task => task.completed
-      );
-  }
+  const filteredTasks =
+    getFilteredTasks();
 
   renderTasks(
     filteredTasks,
-    taskList
+    taskList,
+    {
+      hasSearchOrFilter:
+        Boolean(getSearchKeyword()) ||
+        currentFilter !== "all"
+    }
   );
 
   updateStats(tasks);
+
+  updateTaskCount(
+    filteredTasks.length
+  );
+
+  updateDragState();
 }
 
-function createTask() {
+function saveAndRender() {
+  const saved =
+    saveTasks(tasks);
 
+  if (!saved) {
+    showToast(
+      "Unable to save your changes",
+      "error"
+    );
+  }
+
+  render();
+}
+
+function resetCreateForm() {
+  taskForm.reset();
+
+  const mediumPriority =
+    document.querySelector(
+      'input[name="priority"][value="Medium"]'
+    );
+
+  if (mediumPriority) {
+    mediumPriority.checked = true;
+  }
+
+  titleCount.textContent = "0/80";
+
+  taskInput.focus();
+}
+
+/* =====================================================
+   TASK OPERATIONS
+===================================================== */
+
+function createTask() {
   const title =
     taskInput.value.trim();
 
   if (!title) {
-
     showToast(
-      "Task title is required",
+      "Please enter a task title",
       "error"
     );
 
+    taskInput.focus();
     return;
   }
 
-  const task = {
+  if (title.length < 3) {
+    showToast(
+      "Task title needs at least 3 characters",
+      "warning"
+    );
 
+    taskInput.focus();
+    return;
+  }
+
+  const newTask = {
     id: generateId(),
-
     title,
-
     category:
       categoryInput.value,
-
     priority:
-      priorityInput.value,
-
+      getSelectedPriority(),
     dueDate:
       dueDateInput.value,
-
     completed: false,
-
     createdAt:
       new Date().toISOString()
   };
 
-  tasks.unshift(task);
+  tasks.unshift(newTask);
 
-  saveTasks(tasks);
+  saveAndRender();
 
-  showToast("Task Added");
+  resetCreateForm();
 
-  clearInputs();
-
-  render();
+  showToast(
+    "Task added successfully",
+    "success"
+  );
 }
 
-function clearInputs() {
+function toggleTask(id) {
+  tasks = tasks.map(task => {
+    if (
+      String(task.id) === String(id)
+    ) {
+      return {
+        ...task,
+        completed:
+          !task.completed
+      };
+    }
 
-  taskInput.value = "";
+    return task;
+  });
 
-  dueDateInput.value = "";
+  saveAndRender();
+
+  showToast(
+    "Task status updated",
+    "success"
+  );
 }
 
 function deleteTask(id) {
-
-  tasks =
-    tasks.filter(
-      task => task.id !== id
-    );
-
-  saveTasks(tasks);
-
-  showToast(
-    "Task Deleted",
-    "error"
-  );
-
-  render();
-}
-
-function toggleComplete(id) {
-
-  tasks =
-    tasks.map(task => {
-
-      if (task.id === id) {
-
-        task.completed =
-          !task.completed;
-      }
-
-      return task;
-    });
-
-  saveTasks(tasks);
-
-  showToast(
-    "Task Updated"
-  );
-
-  render();
-}
-
-const editModal =
-  document.getElementById("editModal");
-
-const editTaskInput =
-  document.getElementById("editTaskInput");
-
-const saveEditBtn =
-  document.getElementById("saveEditBtn");
-
-const cancelEditBtn =
-  document.getElementById("cancelEditBtn");
-
-let editingTaskId = null;
-
-function openEditModal(id) {
-
   const task =
     tasks.find(
-      t => t.id === id
+      item =>
+        String(item.id) === String(id)
     );
 
-  if (!task) return;
+  if (!task) {
+    return;
+  }
 
-  editingTaskId = id;
+  const shouldDelete =
+    window.confirm(
+      `Delete "${task.title}"?`
+    );
+
+  if (!shouldDelete) {
+    return;
+  }
+
+  tasks = tasks.filter(
+    item =>
+      String(item.id) !== String(id)
+  );
+
+  saveAndRender();
+
+  showToast(
+    "Task deleted",
+    "error"
+  );
+}
+
+/* =====================================================
+   EDIT MODAL
+===================================================== */
+
+function openEditModal(id) {
+  const task =
+    tasks.find(
+      item =>
+        String(item.id) === String(id)
+    );
+
+  if (!task) {
+    return;
+  }
+
+  editingTaskId =
+    String(task.id);
 
   editTaskInput.value =
     task.title;
 
-  editModal.classList.remove(
-    "hidden"
-  );
+  editCategoryInput.value =
+    task.category;
 
-  editModal.classList.add(
-    "flex"
+  editPriorityInput.value =
+    task.priority;
+
+  editDueDateInput.value =
+    task.dueDate || "";
+
+  editModal.hidden = false;
+
+  document.body.style.overflow =
+    "hidden";
+
+  window.setTimeout(() => {
+    editTaskInput.focus();
+    editTaskInput.select();
+  }, 50);
+}
+
+function closeEditModal() {
+  editModal.hidden = true;
+
+  document.body.style.overflow = "";
+
+  editingTaskId = null;
+
+  editTaskForm.reset();
+}
+
+function saveEditedTask() {
+  const updatedTitle =
+    editTaskInput.value.trim();
+
+  if (!updatedTitle) {
+    showToast(
+      "Task title cannot be empty",
+      "error"
+    );
+
+    editTaskInput.focus();
+    return;
+  }
+
+  if (updatedTitle.length < 3) {
+    showToast(
+      "Task title needs at least 3 characters",
+      "warning"
+    );
+
+    editTaskInput.focus();
+    return;
+  }
+
+  tasks = tasks.map(task => {
+    if (
+      String(task.id) ===
+      String(editingTaskId)
+    ) {
+      return {
+        ...task,
+        title: updatedTitle,
+        category:
+          editCategoryInput.value,
+        priority:
+          editPriorityInput.value,
+        dueDate:
+          editDueDateInput.value
+      };
+    }
+
+    return task;
+  });
+
+  saveAndRender();
+
+  closeEditModal();
+
+  showToast(
+    "Task updated successfully",
+    "success"
   );
 }
 
-saveEditBtn.onclick = () => {
+/* =====================================================
+   DRAG AND DROP
+===================================================== */
 
-  const task =
-    tasks.find(
-      t =>
-        t.id === editingTaskId
-    );
+function reorderTasks(orderedIds) {
+  const taskMap = new Map(
+    tasks.map(task => [
+      String(task.id),
+      task
+    ])
+  );
 
-  if (!task) return;
+  const reorderedTasks =
+    orderedIds
+      .map(id =>
+        taskMap.get(String(id))
+      )
+      .filter(Boolean);
 
-  task.title =
-    editTaskInput.value.trim();
+  if (
+    reorderedTasks.length !==
+    tasks.length
+  ) {
+    return;
+  }
+
+  tasks = reorderedTasks;
 
   saveTasks(tasks);
 
-  render();
-
   showToast(
-    "Task Updated"
+    "Task order updated",
+    "info"
   );
+}
 
-  editModal.classList.add(
-    "hidden"
-  );
-};
+/* =====================================================
+   PAGE INFORMATION
+===================================================== */
 
-cancelEditBtn.onclick = () => {
+function updatePageInformation() {
+  const currentDate =
+    document.getElementById(
+      "currentDate"
+    );
 
-  editModal.classList.add(
-    "hidden"
-  );
-};
+  const yearElement =
+    document.getElementById("year");
 
-/* ------------------ EVENTS ------------------ */
+  if (currentDate) {
+    currentDate.textContent =
+      new Date().toLocaleDateString(
+        "en-IN",
+        {
+          weekday: "short",
+          day: "numeric",
+          month: "short"
+        }
+      );
+  }
 
-addBtn.addEventListener(
-  "click",
-  createTask
+  if (yearElement) {
+    yearElement.textContent =
+      new Date().getFullYear();
+  }
+}
+
+/* =====================================================
+   EVENTS
+===================================================== */
+
+taskForm.addEventListener(
+  "submit",
+  event => {
+    event.preventDefault();
+    createTask();
+  }
 );
 
 taskInput.addEventListener(
-  "keypress",
-  e => {
-
-    if (e.key === "Enter") {
-
-      createTask();
-    }
+  "input",
+  () => {
+    titleCount.textContent =
+      `${taskInput.value.length}/80`;
   }
 );
 
 searchInput.addEventListener(
   "input",
-  render
-);
-
-themeBtn.addEventListener(
-  "click",
   () => {
+    clearSearchBtn.hidden =
+      !searchInput.value;
 
-    const dark =
-      toggleTheme();
-
-    showToast(
-      dark
-        ? "Dark Mode Enabled"
-        : "Light Mode Enabled",
-      "info"
-    );
+    render();
   }
 );
 
-filterButtons.forEach(btn => {
+clearSearchBtn.addEventListener(
+  "click",
+  () => {
+    searchInput.value = "";
 
-  btn.addEventListener(
+    clearSearchBtn.hidden = true;
+
+    searchInput.focus();
+
+    render();
+  }
+);
+
+filterButtons.forEach(button => {
+  button.addEventListener(
     "click",
     () => {
-
-      filterButtons.forEach(
-        b =>
-          b.classList.remove(
-            "active"
-          )
+      filterButtons.forEach(item =>
+        item.classList.remove(
+          "active"
+        )
       );
 
-      btn.classList.add(
+      button.classList.add(
         "active"
       );
 
       currentFilter =
-        btn.dataset.filter;
+        button.dataset.filter;
 
       render();
     }
@@ -342,38 +618,103 @@ filterButtons.forEach(btn => {
 
 taskList.addEventListener(
   "click",
-  e => {
-
-    const id =
-      Number(
-        e.target.dataset.id
+  event => {
+    const actionButton =
+      event.target.closest(
+        "[data-action]"
       );
 
-    if (
-      e.target.classList.contains(
-        "delete-btn"
-      )
-    ) {
-
-      deleteTask(id);
+    if (!actionButton) {
+      return;
     }
 
-    if (
-      e.target.classList.contains(
-        "complete-btn"
-      )
-    ) {
+    const {
+      action,
+      id
+    } = actionButton.dataset;
 
-      toggleComplete(id);
+    if (action === "toggle") {
+      toggleTask(id);
     }
 
-    if (
-      e.target.classList.contains(
-        "edit-btn"
-      )
-    ) {
-
+    if (action === "edit") {
       openEditModal(id);
+    }
+
+    if (action === "delete") {
+      deleteTask(id);
     }
   }
 );
+
+themeBtn.addEventListener(
+  "click",
+  () => {
+    const theme =
+      toggleTheme(themeBtn);
+
+    showToast(
+      theme === "dark"
+        ? "Dark theme enabled"
+        : "Light theme enabled",
+      "info"
+    );
+  }
+);
+
+editTaskForm.addEventListener(
+  "submit",
+  event => {
+    event.preventDefault();
+    saveEditedTask();
+  }
+);
+
+closeEditBtn.addEventListener(
+  "click",
+  closeEditModal
+);
+
+cancelEditBtn.addEventListener(
+  "click",
+  closeEditModal
+);
+
+editModal.addEventListener(
+  "click",
+  event => {
+    if (event.target === editModal) {
+      closeEditModal();
+    }
+  }
+);
+
+document.addEventListener(
+  "keydown",
+  event => {
+    if (
+      event.key === "Escape" &&
+      !editModal.hidden
+    ) {
+      closeEditModal();
+    }
+  }
+);
+
+/* =====================================================
+   INITIALIZATION
+===================================================== */
+
+initTheme(themeBtn);
+
+updatePageInformation();
+
+render();
+
+sortableInstance =
+  initDragAndDrop(
+    taskList,
+    reorderTasks
+  );
+
+updateDragState();

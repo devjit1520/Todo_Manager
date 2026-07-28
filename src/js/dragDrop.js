@@ -1,23 +1,31 @@
-import { saveTasks } from "./storage.js";
+export function initDragAndDrop(
+  taskList,
+  onReorder
+) {
+  if (
+    !taskList ||
+    typeof window.Sortable !== "function"
+  ) {
+    return null;
+  }
 
-export function initDragAndDrop(taskList, tasks, render) {
-  new Sortable(taskList, {
-    animation: 300,
+  return new window.Sortable(taskList, {
+    animation: 260,
+    handle: ".drag-handle",
+    ghostClass: "sortable-ghost",
+    dragClass: "sortable-drag",
 
-    ghostClass: "dragging",
+    onEnd() {
+      const orderedIds = [
+        ...taskList.querySelectorAll(
+          "[data-task-id]"
+        )
+      ].map(
+        element =>
+          element.dataset.taskId
+      );
 
-    onEnd(event) {
-      const { oldIndex, newIndex } = event;
-
-      if (oldIndex === newIndex) return;
-
-      const movedTask = tasks.splice(oldIndex, 1)[0];
-
-      tasks.splice(newIndex, 0, movedTask);
-
-      saveTasks(tasks);
-
-      render();
+      onReorder(orderedIds);
     }
   });
 }

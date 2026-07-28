@@ -1,271 +1,601 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Modern Todo App | Devjit Mondal</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
+  <title>TaskBloom — Modern Todo App</title>
+
+  <meta
+    name="description"
+    content="TaskBloom is a modern responsive task management application built with HTML, Tailwind CSS and Vanilla JavaScript."
+  />
+
+  <meta
+    name="keywords"
+    content="todo app, task manager, JavaScript project, Tailwind CSS, frontend portfolio"
+  />
+
+  <meta name="author" content="Devjit Mondal" />
+  <meta name="theme-color" content="#10231d" />
+
+<link
+  rel="icon"
+  type="image/svg+xml"
+  href="./src/assets/favicon.svg.svg"
+/>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap"
+    rel="stylesheet"
+  />
 
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!-- Google Font -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <link
-    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-    rel="stylesheet">
-
   <!-- Font Awesome -->
   <link
     rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+  />
 
-  <!-- Toastify -->
+  <!-- Toastify CSS -->
   <link
     rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+  />
 
   <!-- Custom CSS -->
-  <link rel="stylesheet" href="./src/css/style.css">
+  <link rel="stylesheet" href="./src/css/style.css" />
 </head>
 
-<body class="dark">
+<body>
+  <!-- Background decoration -->
+  <div class="page-background" aria-hidden="true">
+    <span class="background-shape shape-one"></span>
+    <span class="background-shape shape-two"></span>
+    <span class="background-shape shape-three"></span>
+  </div>
 
-  <main class="container-app">
-
+  <main class="app-shell">
     <!-- Header -->
-    <header class="header">
+    <header class="app-header">
+      <a href="#" class="brand" aria-label="TaskBloom home">
+        <span class="brand-icon">
+          <i class="fa-solid fa-seedling"></i>
+        </span>
 
-      <div>
-        <h1 class="title">
-          <i class="fa-solid fa-list-check"></i>
-          Modern Todo
+        <span class="brand-text">
+          <strong>TaskBloom</strong>
+          <small>Plan. Focus. Grow.</small>
+        </span>
+      </a>
+
+      <div class="header-actions">
+        <div class="today-chip">
+          <i class="fa-regular fa-calendar"></i>
+          <span id="currentDate">Today</span>
+        </div>
+
+        <button
+          id="themeBtn"
+          class="theme-toggle"
+          type="button"
+          aria-label="Switch theme"
+          aria-pressed="true"
+        >
+          <i class="fa-solid fa-sun"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero-section">
+      <div class="hero-copy">
+        <span class="eyebrow">
+          <i class="fa-solid fa-sparkles"></i>
+          Personal productivity workspace
+        </span>
+
+        <h1>
+          Turn daily plans into
+          <span>meaningful progress.</span>
         </h1>
 
-        <p class="subtitle">
-          Stay organized and productive every day 🚀
+        <p>
+          Organize tasks, set priorities, track deadlines and build
+          productive habits from one clean workspace.
         </p>
       </div>
 
-      <button id="themeBtn" class="theme-btn">
-        <i class="fa-solid fa-moon"></i>
-      </button>
+      <div class="hero-summary">
+        <div class="hero-summary-icon">
+          <i class="fa-solid fa-bullseye"></i>
+        </div>
 
-    </header>
-
-    <!-- Stats -->
-    <section class="stats-grid">
-
-      <div class="stat-card">
-        <h3 id="totalTasks">0</h3>
-        <p>Total Tasks</p>
+        <div>
+          <span>Daily focus</span>
+          <strong id="focusMessage">Start by adding your first task.</strong>
+        </div>
       </div>
-
-      <div class="stat-card">
-        <h3 id="completedTasks">0</h3>
-        <p>Completed</p>
-      </div>
-
-      <div class="stat-card">
-        <h3 id="pendingTasks">0</h3>
-        <p>Pending</p>
-      </div>
-
     </section>
 
-    <!-- Search -->
-    <section class="glass-card p-6 mb-6">
+    <!-- Statistics -->
+    <section class="stats-grid" aria-label="Task statistics">
+      <article class="stat-card stat-total">
+        <div class="stat-icon">
+          <i class="fa-solid fa-layer-group"></i>
+        </div>
 
-      <input
-        id="searchInput"
-        type="text"
-        placeholder="Search tasks..."
-        class="input-field">
+        <div>
+          <span>Total tasks</span>
+          <strong id="totalTasks">0</strong>
+        </div>
 
+        <small>Everything you planned</small>
+      </article>
+
+      <article class="stat-card stat-completed">
+        <div class="stat-icon">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+
+        <div>
+          <span>Completed</span>
+          <strong id="completedTasks">0</strong>
+        </div>
+
+        <small>Finished successfully</small>
+      </article>
+
+      <article class="stat-card stat-pending">
+        <div class="stat-icon">
+          <i class="fa-solid fa-hourglass-half"></i>
+        </div>
+
+        <div>
+          <span>In progress</span>
+          <strong id="pendingTasks">0</strong>
+        </div>
+
+        <small>Still needs attention</small>
+      </article>
+
+      <article class="stat-card stat-overdue">
+        <div class="stat-icon">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+
+        <div>
+          <span>Overdue</span>
+          <strong id="overdueTasks">0</strong>
+        </div>
+
+        <small>Deadlines that passed</small>
+      </article>
     </section>
 
-    <!-- Add Task -->
-    <section class="glass-card p-6 mb-8">
+    <!-- Workspace -->
+    <section class="workspace-grid">
+      <!-- Add task form -->
+      <aside class="task-form-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="panel-label">Create task</span>
+            <h2>Add something important</h2>
+          </div>
 
-      <div class="grid md:grid-cols-2 gap-4">
+          <span class="panel-heading-icon">
+            <i class="fa-solid fa-plus"></i>
+          </span>
+        </div>
 
-        <input
-          id="taskInput"
-          type="text"
-          placeholder="Task title"
-          class="input-field">
+        <form id="taskForm" novalidate>
+          <div class="form-group">
+            <label for="taskInput">Task title</label>
 
-        <select
-          id="categoryInput"
-          class="input-field">
+            <div class="field-control">
+              <i class="fa-solid fa-pen"></i>
 
-          <option value="Work">Work</option>
-          <option value="Study">Study</option>
-          <option value="Personal">Personal</option>
-          <option value="Shopping">Shopping</option>
+              <input
+                id="taskInput"
+                type="text"
+                maxlength="80"
+                placeholder="What needs to be done?"
+                autocomplete="off"
+              />
+            </div>
 
-        </select>
+            <div class="field-footer">
+              <span>Minimum 3 characters</span>
+              <span id="titleCount">0/80</span>
+            </div>
+          </div>
 
-        <select
-          id="priorityInput"
-          class="input-field">
+          <div class="form-group">
+            <label for="categoryInput">Category</label>
 
-          <option value="High">High Priority</option>
-          <option value="Medium">Medium Priority</option>
-          <option value="Low">Low Priority</option>
+            <div class="field-control">
+              <i class="fa-solid fa-folder"></i>
 
-        </select>
+              <select id="categoryInput">
+                <option value="Work">Work</option>
+                <option value="Study">Study</option>
+                <option value="Personal">Personal</option>
+                <option value="Health">Health</option>
+                <option value="Shopping">Shopping</option>
+              </select>
 
-        <input
-          id="dueDateInput"
-          type="date"
-          class="input-field">
+              <i class="fa-solid fa-chevron-down select-arrow"></i>
+            </div>
+          </div>
 
-      </div>
+          <div class="form-group">
+            <label for="priorityInput">Priority</label>
 
-      <button
-        id="addBtn"
-        class="primary-btn mt-5">
+            <div class="priority-options">
+              <label class="priority-option">
+                <input
+                  type="radio"
+                  name="priority"
+                  value="Low"
+                />
 
-        <i class="fa-solid fa-plus"></i>
-        Add Task
+                <span>
+                  <i class="fa-solid fa-arrow-down"></i>
+                  Low
+                </span>
+              </label>
 
-      </button>
+              <label class="priority-option">
+                <input
+                  type="radio"
+                  name="priority"
+                  value="Medium"
+                  checked
+                />
 
+                <span>
+                  <i class="fa-solid fa-minus"></i>
+                  Medium
+                </span>
+              </label>
+
+              <label class="priority-option">
+                <input
+                  type="radio"
+                  name="priority"
+                  value="High"
+                />
+
+                <span>
+                  <i class="fa-solid fa-arrow-up"></i>
+                  High
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="dueDateInput">Due date</label>
+
+            <div class="field-control">
+              <i class="fa-regular fa-calendar"></i>
+
+              <input
+                id="dueDateInput"
+                type="date"
+              />
+            </div>
+          </div>
+
+          <button class="add-task-button" type="submit">
+            <span>
+              <i class="fa-solid fa-plus"></i>
+              Add task
+            </span>
+
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </form>
+      </aside>
+
+      <!-- Tasks area -->
+      <section class="tasks-panel">
+        <div class="tasks-toolbar">
+          <div>
+            <span class="panel-label">Your workspace</span>
+            <h2>Today’s tasks</h2>
+          </div>
+
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+
+            <input
+              id="searchInput"
+              type="search"
+              placeholder="Search tasks..."
+              autocomplete="off"
+            />
+
+            <button
+              id="clearSearchBtn"
+              type="button"
+              aria-label="Clear search"
+              hidden
+            >
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-row">
+          <div class="filter-tabs" role="tablist">
+            <button
+              class="filter-btn active"
+              type="button"
+              data-filter="all"
+            >
+              All
+            </button>
+
+            <button
+              class="filter-btn"
+              type="button"
+              data-filter="active"
+            >
+              Active
+            </button>
+
+            <button
+              class="filter-btn"
+              type="button"
+              data-filter="completed"
+            >
+              Completed
+            </button>
+
+            <button
+              class="filter-btn"
+              type="button"
+              data-filter="overdue"
+            >
+              Overdue
+            </button>
+          </div>
+
+          <span id="taskResultCount" class="task-result-count">
+            0 tasks
+          </span>
+        </div>
+
+        <div
+          id="taskList"
+          class="task-list"
+          aria-live="polite"
+        ></div>
+
+        <div id="dragHint" class="drag-hint">
+          <i class="fa-solid fa-grip-lines"></i>
+          Drag task cards to change their order
+        </div>
+      </section>
     </section>
-
-    <!-- Filters -->
-    <section class="filter-wrapper">
-
-      <button
-        class="filter-btn active"
-        data-filter="all">
-
-        All
-
-      </button>
-
-      <button
-        class="filter-btn"
-        data-filter="active">
-
-        Active
-
-      </button>
-
-      <button
-        class="filter-btn"
-        data-filter="completed">
-
-        Completed
-
-      </button>
-
-    </section>
-
-    <!-- Task List -->
-    <section>
-
-      <div
-        id="taskList"
-        class="space-y-5">
-
-      </div>
-
-    </section>
-
-    <!-- EDIT MODAL -->
-
-<div
-  id="editModal"
-  class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50">
-
-  <div
-    class="glass-card p-8 w-[90%] max-w-md">
-
-    <h2 class="text-2xl font-bold mb-5">
-      Edit Task
-    </h2>
-
-    <input
-      id="editTaskInput"
-      type="text"
-      class="input-field mb-5">
-
-    <div class="flex gap-4">
-
-      <button
-        id="saveEditBtn"
-        class="primary-btn flex-1">
-
-        Save
-
-      </button>
-
-      <button
-        id="cancelEditBtn"
-        class="bg-red-500 px-6 rounded-xl">
-
-        Cancel
-
-      </button>
-
-    </div>
-
-  </div>
-
-</div>
-
   </main>
 
   <!-- Footer -->
+  <footer class="site-footer">
+    <div class="footer-container">
+      <div class="footer-main">
+        <div class="footer-brand">
+          <a href="#" class="brand footer-logo">
+            <span class="brand-icon">
+              <i class="fa-solid fa-seedling"></i>
+            </span>
 
-<footer class="footer">
+            <span class="brand-text">
+              <strong>TaskBloom</strong>
+              <small>Modern productivity app</small>
+            </span>
+          </a>
 
-  <div class="footer-content">
+          <p>
+            A portfolio task-management application designed and
+            developed with modern frontend technologies.
+          </p>
+        </div>
 
-    <p>
-      © 2026 Devjit Mondal. Built with ❤️ using HTML, Tailwind CSS & JavaScript.
-    </p>
+        <div class="footer-links">
+          <div>
+            <h3>Project</h3>
+            <a href="#">Home</a>
+            <a href="#taskForm">Create task</a>
+            <a href="#taskList">Task list</a>
+          </div>
 
-    <div class="social-links">
+          <div>
+            <h3>Features</h3>
+            <span>Local storage</span>
+            <span>Dark mode</span>
+            <span>Drag and drop</span>
+          </div>
+        </div>
 
-      <a
-        href="https://github.com/devjit1520"
-        target="_blank"
-        aria-label="GitHub">
+        <div class="footer-connect">
+          <h3>Connect with me</h3>
 
-        <i class="fa-brands fa-github"></i>
+          <p>Explore more projects and frontend development work.</p>
 
-      </a>
+          <div class="social-links">
+            <a
+              href="https://github.com/devjit1520"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="GitHub"
+            >
+              <i class="fa-brands fa-github"></i>
+            </a>
 
-      <a
-        href="https://www.linkedin.com/in/devjit-mondal-b68947233/"
-        target="_blank"
-        aria-label="LinkedIn">
+            <a
+              href="https://www.linkedin.com/in/devjit-mondal-b68947233/"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="LinkedIn"
+            >
+              <i class="fa-brands fa-linkedin-in"></i>
+            </a>
 
-        <i class="fa-brands fa-linkedin"></i>
+            <a href="https://portfolio-devjit.vercel.app/" aria-label="Portfolio">
+              <i class="fa-solid fa-globe"></i>
+            </a>
+          </div>
+        </div>
+      </div>
 
-      </a>
+      <div class="footer-bottom">
+        <p>
+          © <span id="year"></span>
+          <strong>Devjit Mondal</strong>.
+          All rights reserved.
+        </p>
 
+        <p>
+          Built with HTML, Tailwind CSS and JavaScript
+          <i class="fa-solid fa-heart"></i>
+        </p>
+      </div>
     </div>
+  </footer>
 
+  <!-- Edit task modal -->
+  <div
+    id="editModal"
+    class="modal-backdrop"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="editModalTitle"
+    hidden
+  >
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <span class="panel-label">Update task</span>
+          <h2 id="editModalTitle">Edit task details</h2>
+        </div>
+
+        <button
+          id="closeEditBtn"
+          class="modal-close"
+          type="button"
+          aria-label="Close modal"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <form id="editTaskForm">
+        <div class="form-group">
+          <label for="editTaskInput">Task title</label>
+
+          <div class="field-control">
+            <i class="fa-solid fa-pen"></i>
+
+            <input
+              id="editTaskInput"
+              type="text"
+              maxlength="80"
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <div class="modal-form-grid">
+          <div class="form-group">
+            <label for="editCategoryInput">Category</label>
+
+            <div class="field-control">
+              <i class="fa-solid fa-folder"></i>
+
+              <select id="editCategoryInput">
+                <option value="Work">Work</option>
+                <option value="Study">Study</option>
+                <option value="Personal">Personal</option>
+                <option value="Health">Health</option>
+                <option value="Shopping">Shopping</option>
+              </select>
+
+              <i class="fa-solid fa-chevron-down select-arrow"></i>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="editPriorityInput">Priority</label>
+
+            <div class="field-control">
+              <i class="fa-solid fa-signal"></i>
+
+              <select id="editPriorityInput">
+                <option value="Low">Low</option>
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+              </select>
+
+              <i class="fa-solid fa-chevron-down select-arrow"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="editDueDateInput">Due date</label>
+
+          <div class="field-control">
+            <i class="fa-regular fa-calendar"></i>
+
+            <input
+              id="editDueDateInput"
+              type="date"
+            />
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button
+            id="cancelEditBtn"
+            class="secondary-button"
+            type="button"
+          >
+            Cancel
+          </button>
+
+          <button class="save-button" type="submit">
+            <i class="fa-solid fa-check"></i>
+            Save changes
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 
-</footer>
+  <!-- SortableJS -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
 
-  <!-- Sortable JS -->
-  <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-
-  <!-- Toastify -->
+  <!-- ToastifyJS -->
   <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
-  <!-- Main App -->
+  <!-- Application -->
   <script type="module" src="./src/js/app.js"></script>
-
 </body>
-
 </html>

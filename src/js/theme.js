@@ -1,31 +1,76 @@
-const THEME_KEY = "todoTheme";
+const THEME_STORAGE_KEY = "taskBloomTheme";
 
-export function initTheme() {
+function updateThemeButton(themeButton, theme) {
+  if (!themeButton) return;
 
-  const savedTheme =
-    localStorage.getItem(THEME_KEY);
+  const isDark = theme === "dark";
 
-  if (savedTheme === "light") {
+  themeButton.innerHTML = isDark
+    ? '<i class="fa-solid fa-sun"></i>'
+    : '<i class="fa-solid fa-moon"></i>';
 
-    document.body.classList.remove("dark");
-
-  } else {
-
-    document.body.classList.add("dark");
-  }
-}
-
-export function toggleTheme() {
-
-  document.body.classList.toggle("dark");
-
-  const isDark =
-    document.body.classList.contains("dark");
-
-  localStorage.setItem(
-    THEME_KEY,
-    isDark ? "dark" : "light"
+  themeButton.setAttribute(
+    "aria-label",
+    isDark
+      ? "Switch to light theme"
+      : "Switch to dark theme"
   );
 
-  return isDark;
+  themeButton.setAttribute(
+    "aria-pressed",
+    String(isDark)
+  );
+}
+
+export function initTheme(themeButton) {
+  const savedTheme =
+    localStorage.getItem(THEME_STORAGE_KEY);
+
+  const systemPrefersDark =
+    window.matchMedia &&
+    window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+
+  const theme =
+    savedTheme ||
+    (systemPrefersDark ? "dark" : "light");
+
+  document.documentElement.setAttribute(
+    "data-theme",
+    theme
+  );
+
+  updateThemeButton(themeButton, theme);
+
+  return theme;
+}
+
+export function toggleTheme(themeButton) {
+  const currentTheme =
+    document.documentElement.getAttribute(
+      "data-theme"
+    ) || "dark";
+
+  const nextTheme =
+    currentTheme === "dark"
+      ? "light"
+      : "dark";
+
+  document.documentElement.setAttribute(
+    "data-theme",
+    nextTheme
+  );
+
+  localStorage.setItem(
+    THEME_STORAGE_KEY,
+    nextTheme
+  );
+
+  updateThemeButton(
+    themeButton,
+    nextTheme
+  );
+
+  return nextTheme;
 }

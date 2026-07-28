@@ -1,14 +1,43 @@
-const STORAGE_KEY = "modernTodoTasks";
+const TASK_STORAGE_KEY = "taskBloomTasks";
 
 export function getTasks() {
-  const tasks = localStorage.getItem(STORAGE_KEY);
+  try {
+    const storedTasks =
+      localStorage.getItem(TASK_STORAGE_KEY);
 
-  return tasks ? JSON.parse(tasks) : [];
+    if (!storedTasks) {
+      return [];
+    }
+
+    const parsedTasks = JSON.parse(storedTasks);
+
+    return Array.isArray(parsedTasks)
+      ? parsedTasks
+      : [];
+  } catch (error) {
+    console.error(
+      "Unable to read tasks from Local Storage:",
+      error
+    );
+
+    return [];
+  }
 }
 
 export function saveTasks(tasks) {
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify(tasks)
-  );
+  try {
+    localStorage.setItem(
+      TASK_STORAGE_KEY,
+      JSON.stringify(tasks)
+    );
+
+    return true;
+  } catch (error) {
+    console.error(
+      "Unable to save tasks to Local Storage:",
+      error
+    );
+
+    return false;
+  }
 }
